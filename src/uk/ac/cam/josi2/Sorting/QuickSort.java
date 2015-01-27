@@ -1,22 +1,21 @@
-package uk.ac.cam.josi2;
+package uk.ac.cam.josi2.Sorting;
 
-import java.util.Comparator;
 import java.util.List;
 
 /**
  * Created by joeisaacs on 09/01/2015.
  */
-public class QuickSort <T> implements Sorting{
+public class QuickSort <T> implements Sorting {
 
 
     public static <T extends  Comparable<T>> List<T> sort(List<T> l)  {
         if(l.size() == 0 || l.size() == 1)
             return l;
 
-        return sortImp(l, l.size()-1, 0);
+        return partition(l, l.size() - 1, 0);
     }
 
-    private static <T extends Comparable<T>> List<T> sortImp(List<T> l, int hi, int lo){
+    private static <T extends Comparable<T>> List<T> partition(List<T> l, int hi, int lo){
         if(hi <= lo)
             return l;
         int pivot = genPivot(hi, lo);
@@ -30,8 +29,8 @@ public class QuickSort <T> implements Sorting{
             }
         }
         swap(l, sortIndex, hi);
-        sortImp(l, hi, sortIndex+1);
-        sortImp(l, sortIndex-1, lo);
+        partition(l, hi, sortIndex + 1);
+        partition(l, sortIndex - 1, lo);
         return l;
     }
 
