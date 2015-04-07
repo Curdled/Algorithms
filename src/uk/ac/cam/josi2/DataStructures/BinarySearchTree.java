@@ -72,6 +72,58 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
         return mRoot.treeMax().mData;
     }
 
+
+    private TreeNode getNode(T key){
+        TreeNode  tail = mRoot;
+
+        while(tail != null && tail.mKey.compareTo(key) != 0){
+            //go on the left side.
+            if (tail.mKey.compareTo(key) > 0) {
+                tail = tail.mLeft;
+            }
+            //go on the right side
+            else {
+                tail = tail.mRight;
+            }
+        }
+        if(tail != null)
+            return tail;
+        return null;
+    }
+
+    private void delete(TreeNode node){
+        if(node == null)
+            return;
+
+        if(node.mLeft == null){
+            //swap with right, right may be null
+            node.swap(node.mRight);
+        }
+        else if(node.mRight == null){
+            //swap with left
+            node.swap(node.mLeft);
+        }
+        else{
+            TreeNode sec = node.mRight.treeMin();
+            if(sec.mParent != node){
+                //The successor is not the right child of the
+                //node do be deleted
+
+                //The successor may have a right child swap the right children with
+                //it's parents place
+                sec.swap(sec.mRight);
+                //Make the successors right children the same as the node to be
+                //deleted.
+                sec.mRight = node.mRight;
+                sec.mRight.mParent = sec;
+            }
+            //Now the node can be swapped with it's successor.
+            node.swap(sec);
+            sec.mLeft = node.mLeft;
+            sec.mLeft.mParent = sec;
+        }
+    }
+
     private class TreeNode{
         private T mKey;
         private U mData;
@@ -135,60 +187,4 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
                 with.mParent = node.mParent;
         }
     }
-
-    private TreeNode getNode(T key){
-        TreeNode  tail = mRoot;
-
-        while(tail != null && tail.mKey.compareTo(key) != 0){
-            //go on the left side.
-            if (tail.mKey.compareTo(key) > 0) {
-                tail = tail.mLeft;
-            }
-            //go on the right side
-            else {
-                tail = tail.mRight;
-            }
-        }
-        if(tail != null)
-            return tail;
-        return null;
-    }
-
-    private void delete(TreeNode node){
-        if(node == null)
-            return;
-
-        if(node.mLeft == null){
-            //swap with right, right may be null
-            node.swap(node.mRight);
-        }
-        else if(node.mRight == null){
-            //swap with left
-            node.swap(node.mLeft);
-        }
-        else{
-
-            TreeNode sec = node.mRight.treeMin();
-            if(sec.mParent != node){
-                //The successor is not the right child of the
-                //node do be deleted
-
-                //The successor may have a right child swap the right children with
-                //it's parents place
-                sec.swap(sec.mRight);
-                //Make the successors right children the same as the node to be
-                //deleted.
-                sec.mRight = node.mRight;
-                sec.mRight.mParent = sec;
-            }
-            //Now the node can be swapped with it's successor.
-            node.swap(sec);
-            sec.mLeft = node.mLeft;
-            sec.mLeft.mParent = sec;
-        }
-    }
-
-
-
-
 }
