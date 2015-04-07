@@ -7,22 +7,22 @@ import sun.reflect.generics.tree.Tree;
  */
 public class BinarySearchTree<T extends Comparable<T>, U> {
 
-    private TreeNode<T,U> mRoot;
+    private TreeNode mRoot;
 
     public BinarySearchTree(T key, U data){
-        mRoot = new TreeNode<>(key, data);
+        mRoot = new TreeNode(key , data);
     }
 
     public void insert(T key, U data){
-        TreeNode<T, U> branch = mRoot;
+        TreeNode  branch = mRoot;
         if(mRoot == null)
-            mRoot = new TreeNode<>(key,data);
+            mRoot = new TreeNode(key , data);
 
         while(true) {
             //go on the left side.
             if (branch.mKey.compareTo(key) >= 0) {
                 if (branch.mLeft == null) {
-                    branch.mLeft = new TreeNode<>(key, data);
+                    branch.mLeft = mRoot = new TreeNode(key , data);
                     branch.mLeft.mParent = branch;
                     return;
                 }
@@ -32,7 +32,7 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
             //go on the right side
             else {
                 if (branch.mRight == null) {
-                    branch.mRight = new TreeNode<>(key, data);
+                    branch.mRight = mRoot = new TreeNode(key , data);
                     branch.mRight.mParent = branch;
                     return;
                 }
@@ -56,7 +56,7 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
         merge(toMerge.mRoot);
     }
 
-    private void merge(TreeNode<T,U> toMerge){
+    private void merge(TreeNode toMerge){
         if (toMerge != null){
             insert(toMerge.mKey, toMerge.mData);
             merge(toMerge.mLeft);
@@ -72,47 +72,47 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
         return mRoot.treeMax().mData;
     }
 
-    private class TreeNode<T extends Comparable<T>,U>{
+    private class TreeNode{
         private T mKey;
         private U mData;
-        private TreeNode<T,U> mLeft, mRight, mParent;
+        private TreeNode mLeft, mRight, mParent;
 
         TreeNode(T key, U data){
             mKey = key;
             mData = data;
         }
 
-        private TreeNode<T,U> treeMax(TreeNode<T,U> t){
+        private TreeNode treeMax(TreeNode t){
             while (t.mRight != null) {
                 t = t.mRight;
             }
             return t;
         }
 
-        private TreeNode<T,U> treeMax(){
+        private TreeNode treeMax(){
             return treeMax(this);
         }
 
-        private TreeNode<T,U> treeMin(){
+        private TreeNode treeMin(){
             return treeMin(this);
         }
 
-        private TreeNode<T,U> treeMin(TreeNode<T,U> t){
+        private TreeNode treeMin(TreeNode t){
             while (t.mLeft != null) {
                 t = t.mLeft;
             }
             return t;
         }
 
-        private TreeNode<T,U> successor(){
-            TreeNode<T,U> t = this;
+        private TreeNode successor(){
+            TreeNode t = this;
             if(t == null)
                 return null;
             if(t.mRight != null) {
                 return treeMin(t.mRight);
             }
             else {
-                TreeNode<T, U> parent = t.mParent;
+                TreeNode  parent = t.mParent;
                 while (parent != null && t == parent.mRight){
                     t = parent;
                     parent = parent.mParent;
@@ -120,10 +120,24 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
                 return parent;
             }
         }
+
+        //only use inside delete.
+        private void swap(TreeNode with){
+            TreeNode node = this;
+            if(node.mParent == null)
+                mRoot = with;
+            else if (node.mParent.mLeft == node)
+                node.mParent.mLeft = with;
+            else
+                node.mParent.mRight = with;
+
+            if (with != null)
+                with.mParent = node.mParent;
+        }
     }
 
-    private TreeNode<T,U> getNode(T key){
-        TreeNode<T, U> tail = mRoot;
+    private TreeNode getNode(T key){
+        TreeNode  tail = mRoot;
 
         while(tail != null && tail.mKey.compareTo(key) != 0){
             //go on the left side.
@@ -140,52 +154,41 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
         return null;
     }
 
-    private void delete(TreeNode<T,U> node){
+    private void delete(TreeNode node){
         if(node == null)
             return;
 
         if(node.mLeft == null){
             //swap with right, right may be null
-            swap(node, node.mRight);
+            node.swap(node.mRight);
         }
         else if(node.mRight == null){
             //swap with left
-            swap(node, node.mLeft);
+            node.swap(node.mLeft);
         }
         else{
 
-            TreeNode<T,U> sec = node.mRight.treeMin();
+            TreeNode sec = node.mRight.treeMin();
             if(sec.mParent != node){
                 //The successor is not the right child of the
                 //node do be deleted
 
                 //The successor may have a right child swap the right children with
                 //it's parents place
-                swap(sec, sec.mRight);
+                sec.swap(sec.mRight);
                 //Make the successors right children the same as the node to be
                 //deleted.
                 sec.mRight = node.mRight;
                 sec.mRight.mParent = sec;
             }
             //Now the node can be swapped with it's successor.
-            swap(node, sec);
+            node.swap(sec);
             sec.mLeft = node.mLeft;
             sec.mLeft.mParent = sec;
         }
     }
 
-    //only use inside delete.
-    private void swap(TreeNode<T,U> node, TreeNode<T,U> with){
-        if(node.mParent == null)
-            mRoot = with;
-        else if (node.mParent.mLeft == node)
-            node.mParent.mLeft = with;
-        else
-            node.mParent.mRight = with;
 
-        if (with != null)
-            with.mParent = node.mParent;
-    }
 
 
 }
