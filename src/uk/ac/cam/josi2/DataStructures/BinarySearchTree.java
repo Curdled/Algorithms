@@ -15,6 +15,8 @@ public class BinarySearchTree<T extends Comparable<T>, U> {
 
     public void insert(T key, U data){
         TreeNode<T, U> branch = mRoot;
+        if(mRoot == null)
+            mRoot = new TreeNode<>(key,data);
 
         while(true) {
             //go on the left side.
