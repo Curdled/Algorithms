@@ -239,7 +239,6 @@ public class RedBlackTree<T extends Comparable<T>, U>  {
 
         private void leftRotate(){leftRotate(this);}
 
-
         private void leftRotate(RedBlackTreeNode x) {
             if(x == null || x.mRight == null)
                 return;
@@ -269,7 +268,6 @@ public class RedBlackTree<T extends Comparable<T>, U>  {
         //       b   c           a   b
 
         private void rightRotate(){rightRotate(this);}
-
 
         private void rightRotate(RedBlackTreeNode x) {
             if(x == null || x.mLeft == null)
