@@ -58,7 +58,6 @@ public class RedBlackTree<T extends Comparable<T>, U>  {
     public void delete(T key){delete(getNode(key));}
 
 
-
     private void delete(RedBlackTreeNode node) {
         RedBlackTreeNode sec = node;
         boolean originalColour = node.mColour;
@@ -99,60 +98,60 @@ public class RedBlackTree<T extends Comparable<T>, U>  {
             deleteColourCorrect(replacment);
     }
 
-    private void deleteColourCorrect(RedBlackTreeNode replacment) {
-        if(replacment == null)
+    private void deleteColourCorrect(RedBlackTreeNode node) {
+        if(node == null)
             return;
-        while (replacment != mRoot && replacment.mColour == RedBlackTreeNode.BLACK){
-            if(replacment.mParent.mLeft == replacment) {//left side.
-                RedBlackTreeNode sibling = replacment.mParent.mRight;
+        while (node != mRoot && node.mColour == RedBlackTreeNode.BLACK){
+            if(node.mParent.mLeft == node) {//left side.
+                RedBlackTreeNode sibling = node.mParent.mRight;
                 if(sibling.mColour == RedBlackTreeNode.RED){
                     sibling.mColour = RedBlackTreeNode.RED;
-                    replacment.mParent.mColour = RedBlackTreeNode.BLACK;
-                    replacment.mParent.leftRotate();
-                    sibling = replacment.mParent.mRight;
+                    node.mParent.mColour = RedBlackTreeNode.BLACK;
+                    node.mParent.leftRotate();
+                    sibling = node.mParent.mRight;
                 }
                 if(sibling.mLeft.mColour == RedBlackTreeNode.BLACK && sibling.mRight.mColour == RedBlackTreeNode.BLACK){
                     sibling.mColour = RedBlackTreeNode.RED;
-                    replacment = replacment.mParent;
+                    node = node.mParent;
                 }
                 else if(sibling.mRight.mColour = RedBlackTreeNode.BLACK){
                     sibling.mColour = RedBlackTreeNode.RED;
                     sibling.mRight.mColour = RedBlackTreeNode.BLACK;
                     sibling.rightRotate();
-                    sibling = replacment.mParent.mRight;
+                    sibling = node.mParent.mRight;
                 }
                 sibling.mRight.mColour = RedBlackTreeNode.BLACK;
-                sibling.mColour = replacment.mParent.mColour;
-                replacment.mParent.mColour = RedBlackTreeNode.BLACK;
-                replacment.mParent.leftRotate();
-                replacment = mRoot;
+                sibling.mColour = node.mParent.mColour;
+                node.mParent.mColour = RedBlackTreeNode.BLACK;
+                node.mParent.leftRotate();
+                node = mRoot;
             }
             else{//right side.
-                RedBlackTreeNode sibling = replacment.mParent.mLeft;
+                RedBlackTreeNode sibling = node.mParent.mLeft;
                 if(sibling.mColour == RedBlackTreeNode.RED){
                     sibling.mColour = RedBlackTreeNode.RED;
-                    replacment.mParent.mColour = RedBlackTreeNode.BLACK;
-                    replacment.mParent.rightRotate();
-                    sibling = replacment.mParent.mLeft;
+                    node.mParent.mColour = RedBlackTreeNode.BLACK;
+                    node.mParent.rightRotate();
+                    sibling = node.mParent.mLeft;
                 }
                 if(sibling.mLeft.mColour == RedBlackTreeNode.BLACK && sibling.mRight.mColour == RedBlackTreeNode.BLACK){
                     sibling.mColour = RedBlackTreeNode.RED;
-                    replacment = replacment.mParent;
+                    node = node.mParent;
                 }
                 else if(sibling.mLeft.mColour = RedBlackTreeNode.BLACK){
                     sibling.mColour = RedBlackTreeNode.RED;
                     sibling.mLeft.mColour = RedBlackTreeNode.BLACK;
                     sibling.leftRotate();
-                    sibling = replacment.mParent.mLeft;
+                    sibling = node.mParent.mLeft;
                 }
                 sibling.mLeft.mColour = RedBlackTreeNode.BLACK;
-                sibling.mColour = replacment.mParent.mColour;
-                replacment.mParent.mColour = RedBlackTreeNode.BLACK;
-                replacment.mParent.rightRotate();
-                replacment = mRoot;
+                sibling.mColour = node.mParent.mColour;
+                node.mParent.mColour = RedBlackTreeNode.BLACK;
+                node.mParent.rightRotate();
+                node = mRoot;
             }
         }
-        replacment.mColour = RedBlackTreeNode.BLACK;
+        node.mColour = RedBlackTreeNode.BLACK;
     }
 
     private void insertColourCorrect(RedBlackTreeNode node) {
