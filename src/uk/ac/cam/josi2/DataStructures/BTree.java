@@ -56,6 +56,48 @@ public class BTree<T extends Comparable<T>,U> {
             insertNotFull(newRoot, p);
     }
 
+    public void delete(T key){
+        BTreeNode node = mRoot;
+        BTreeNode parent = null;
+        int i = 0;
+        while(node != null) {
+            for (; i != node.mKeys.size(); i++) {
+                KeyDataPair kd = node.mKeys.get(i);
+                int val = kd.compareTo(key);
+                if(val == 0) {
+                    deleteNode(node, parent, i);
+                }
+                else if(val > 0){
+                    parent = node;
+                    //go down the left side of the node.
+                }
+            }
+            //check all go down the right most side.
+            if(!node.mLeaf && i == node.mKeys.size()) {
+                parent = node;
+                node = node.mPointers.get(node.mPointers.size() - 1);
+            }
+        }
+    }
+
+    public void deleteNode(BTreeNode node, BTreeNode parent, int index){
+        if(node.equals(mRoot)){//root node.
+
+        }
+        else if(node.mLeaf){//leaf.
+            if(node.mKeys.size() >= mMinDegree){
+                node.mKeys.remove(index);
+            }
+            else{
+                parent.fixChild(node, index);
+            }
+        }
+        else{//internal node.
+
+        }
+    }
+
+
     private void insertNotFull(BTreeNode node, KeyDataPair keyDataPair) {
 
         if(node.mLeaf) {
@@ -96,6 +138,23 @@ public class BTree<T extends Comparable<T>,U> {
             mLeaf = true;
             mKeys = new LinkedList<>();
             mPointers = new LinkedList<>();
+        }
+
+        public void fixChild(BTreeNode child, int index){
+            //search the sibling(s) of the child node and move from either side to the
+            //new node, if both side don't have enough nodes to donate a node
+            //merge with one of the nodes.
+
+            if(index - 1 >= 0) {//get the sibling left of the child.
+                BTreeNode firstSibling = mPointers.get(index - 1);
+                if(mMinDegree < firstSibling.mKeys.size()) {//can move from the left side.
+
+                }
+            }
+            else{//get the sibling right of the child.
+                firstSibling = mPointers.get(index+1);
+            }
+
         }
 
         public void split(int ith){
