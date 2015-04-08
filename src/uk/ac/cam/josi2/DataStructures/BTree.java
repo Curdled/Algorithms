@@ -59,36 +59,44 @@ public class BTree<T extends Comparable<T>,U> {
     public void delete(T key){
         BTreeNode node = mRoot;
         BTreeNode parent = null;
-        int i = 0;
+        int parentIndex = -1;//this will only be -1 if the key to be deleted is in the root.
         while(node != null) {
-            for (; i != node.mKeys.size(); i++) {
+            int j = 0;
+            for (int i = 0; i != node.mKeys.size(); i++) {
+                j = i;
                 KeyDataPair kd = node.mKeys.get(i);
                 int val = kd.compareTo(key);
                 if(val == 0) {
-                    deleteNode(node, parent, i);
+                    deleteNode(node, parent, i, parentIndex);
+                    return;
                 }
                 else if(val > 0){
                     parent = node;
+                    node = node.mPointers.get(i);
+                    parentIndex = i;
+                    break;
                     //go down the left side of the node.
                 }
             }
+            j++;
             //check all go down the right most side.
-            if(!node.mLeaf && i == node.mKeys.size()) {
+            if(!node.mLeaf && j == node.mKeys.size()) {
                 parent = node;
+                parentIndex = node.mPointers.size() - 1;
                 node = node.mPointers.get(node.mPointers.size() - 1);
             }
+
         }
     }
 
-    public void deleteNode(BTreeNode node, BTreeNode parent, int index){
+    public void deleteNode(BTreeNode node, BTreeNode parent, int index, int parentIndex){
+
         if(node.equals(mRoot)){//root node.
 
         }
         else if(node.mLeaf){//leaf.
-            if(node.mKeys.size() >= mMinDegree){
-                node.mKeys.remove(index);
-            }
-            else{
+            node.mKeys.remove(index);
+            if(node.mKeys.size() < mMinDegree){
                 parent.fixChild(node, index);
             }
         }
@@ -144,15 +152,28 @@ public class BTree<T extends Comparable<T>,U> {
             //search the sibling(s) of the child node and move from either side to the
             //new node, if both side don't have enough nodes to donate a node
             //merge with one of the nodes.
+            BTreeNode leftSide = null;
+            BTreeNode rightSide = null;
+            if(index  >= 0)
+                leftSide = mPointers.get(index);
 
-            if(index - 1 >= 0) {//get the sibling left of the child.
-                BTreeNode firstSibling = mPointers.get(index - 1);
-                if(mMinDegree < firstSibling.mKeys.size()) {//can move from the left side.
+            if(index < mKeys.size())
+                rightSide = mPointers.get(index+1);
 
-                }
+            if(leftSide != null && mMinDegree < leftSide.mKeys.size()) {//get the sibling left of the child.
+                leftRotate(index);
+                return;
             }
-            else{//get the sibling right of the child.
-                firstSibling = mPointers.get(index+1);
+            else if(rightSide != null && mMinDegree < rightSide.mKeys.size()){//get the sibling right of the child.
+                rightRotate(index);
+                return;
+            }
+            else{//must merge with a sibling.
+                merge(index);
+                if(mKeys.size()+1 <= mMinDegree){
+                    //fixParent();
+                }
+
             }
 
         }
@@ -173,14 +194,72 @@ public class BTree<T extends Comparable<T>,U> {
                     rightNode.mPointers.add(leftNode.mPointers.get(i+mMinDegree));
                 }
             }
-            mPointers.add(ith+1, rightNode);
-            mKeys.add(ith, leftNode.mKeys.get(mMinDegree-1));
+            mPointers.add(ith + 1, rightNode);
+            mKeys.add(ith, leftNode.mKeys.get(mMinDegree - 1));
             for (int i = leftNode.mKeys.size(); i > mMinDegree-1; i--) {
                 leftNode.mKeys.remove(i-1);
             }
             for (int i = leftNode.mPointers.size(); i > mMinDegree; i--) {
                 leftNode.mPointers.remove(i-1);
             }
+        }
+
+        public void merge(int index){
+            if(index >= this.mPointers.size() || index < 0)
+                return;
+
+            BTreeNode leftSide = mPointers.get(index);
+            BTreeNode rightSide = mPointers.get(index+1);
+
+            mPointers.remove(index+1);
+            leftSide.mKeys.add(mKeys.get(index));
+            for (int i = 0; i != rightSide.mKeys.size(); i++) {
+                leftSide.mKeys.add(rightSide.mKeys.get(i));
+            }
+            for (int i  = 0; i != rightSide.mPointers.size(); i++) {
+                leftSide.mPointers.add(rightSide.mPointers.get(i));
+            }
+            mKeys.remove(index);
+            if(this.equals(mRoot)) {
+                if (mKeys.size() == 0) {
+                    mRoot = leftSide;
+                }
+            }
+            else if(mKeys.size() < mMinDegree){
+                //
+            }
+        }
+
+        public void leftRotate(int index){
+            if(index >= this.mPointers.size() || index < 0)
+                return;
+            BTreeNode leftSide = mPointers.get(index);
+            BTreeNode rightSide = mPointers.get(index+1);
+
+            rightSide.mKeys.add(0, mKeys.get(index));
+            mKeys.remove(index);
+            if(leftSide.mKeys.size() == 0) {
+                mKeys.add(index, leftSide.mKeys.get(0));
+                leftSide.mKeys.remove(0);
+            }
+            else {
+                mKeys.add(index, leftSide.mKeys.get(leftSide.mKeys.size() - 1));
+                leftSide.mKeys.remove(leftSide.mKeys.size() - 1);
+            }
+        }
+
+        public void rightRotate(int index){
+            if(index >= this.mPointers.size() || index < 0)
+                return;
+            BTreeNode leftSide = mPointers.get(index);
+            BTreeNode rightSide = mPointers.get(index+1);
+            if(leftSide.mKeys.size() == 0)
+                leftSide.mKeys.add(0, mKeys.get(index));
+            else
+                leftSide.mKeys.add(leftSide.mKeys.size()-1, mKeys.get(index));
+            mKeys.remove(index);
+            mKeys.add(index, rightSide.mKeys.get(0));
+            rightSide.mKeys.remove(0);
         }
     }
 
