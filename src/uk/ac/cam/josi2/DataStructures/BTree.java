@@ -19,24 +19,27 @@ public class BTree<T extends Comparable<T>,U> {
 
     public U search(T key){
         BTreeNode node = mRoot;
-        while(node != null){
-            for (int i = 0; i != node.mKeys.size(); i++) {
-                //check left side if not check next one and
-                //after going through the whole loop
-                //go down the right side.
-                int value = node.mKeys.get(i).compareTo(key);
-                if(value == 0 )//found the value return it.
-                    return node.mKeys.get(i).mData;
-                else if(value > 0) {//value is left of the key being checked
+        while(true){
+            int i = 0;
+            //Find the correct node with respect to the key value.
+            for (; i != node.mKeys.size(); i++) {
+                KeyDataPair kd = node.mKeys.get(i);
+                int val = kd.compareTo(key);
+                if(val == 0) {
+                    return kd.mData;
+                }
+                else if(val > 0){
+                    if(node.mLeaf)
+                        return null;
                     node = node.mPointers.get(i);
                     break;
                 }
             }
-            //value not found so far so must be right of this key
-            node = node.mPointers.get(node.mPointers.size()-1);
+            if(!node.mLeaf && i == node.mKeys.size())
+                node = node.mPointers.get(node.mPointers.size()-1);
         }
-        return null;
     }
+
 
     public void insert(T key, U value){
         BTreeNode newRoot = mRoot;
