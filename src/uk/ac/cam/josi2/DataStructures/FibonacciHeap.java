@@ -53,18 +53,26 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
 
     //p(H') - p(H) = ((t(H) + 1) + 2 m(h)) - (t(H) + 2m(H)) = 1
     //actual cost O(1), amortized cost 1+O(1) = O(1)
-    public void insert(T key, U data){
+    public FHeapNode insert(T key, U data){
         FHeapNode newNode = new FHeapNode(key, data);
+        insert(newNode);
+        return newNode;
+    }
+
+    public void insert(FHeapNode node){
+        if(node == null)
+            return;
         if(mMin == null) {
-            mMin = newNode;
+            mMin = node;
         }
         else{
-            mMin.mergeList(newNode);
-            if(mMin.mKey.compareTo(newNode.mKey) > 0){
-                mMin = newNode;
+            mMin.mergeList(node);
+            if(mMin.mKey.compareTo(node.mKey) > 0){
+                mMin = node;
             }
         }
         mNumOfNodes++;
+
     }
 
     public U extractMin(){
@@ -93,8 +101,19 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
         return oldMin.mData;
     }
 
-    public void decreaseKey(FHeapNode x, T k){
-
+    public void decreaseKey(FHeapNode x, T key){
+        if(x.mKey.compareTo(key) < 0) {
+            System.err.println("key is greater than current key");
+            return;
+        }
+        x.mKey = key;
+        FHeapNode parent = x.mParent;
+        if(parent != null && parent.mKey.compareTo(x.mKey) > 0){
+            x.cutFrom(parent);
+            parent.cascadingCut();
+        }
+        if(mMin.mKey.compareTo(x.mKey) > 0)
+            mMin = x;
     }
 
     private void consolidate() {
@@ -148,15 +167,16 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
         }
     }
 
-    private class FHeapNode {
-        FHeapNode mParent, mChild, mLeft, mRight;
-        T mKey;
-        U mData;
-        boolean mMarked;
+    public class FHeapNode {
+        private FHeapNode mParent, mChild, mLeft, mRight;
+        private T mKey;
 
-        int mDegree;
+        private U mData;
+        private boolean mMarked;
 
-        private FHeapNode(T key, U data){
+        private int mDegree;
+
+        FHeapNode(T key, U data){
             mMarked = false;
             mDegree = 0;
             mLeft = this;
@@ -167,6 +187,39 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
             mData = data;
         }
 
+        public T getKey() {
+            return mKey;
+        }
+
+
+        public U getData() {
+            return mData;
+        }
+
+        public void setData(U data) {
+            mData = data;
+        }
+
+        private void cutFrom(FHeapNode node){
+            removeFromList();
+            node.mDegree--;
+            mMin.mergeList(this);
+
+            mParent = null;
+            mMarked = false;
+        }
+
+        private void cascadingCut(){
+            FHeapNode parent = mParent;
+            if(parent != null){
+                if(parent.mMarked == false)
+                    parent.mMarked = true;
+                else{
+                    cutFrom(parent);
+                    parent.cascadingCut();
+                }
+            }
+        }
 
         private void mergeList(FHeapNode other){//merges two linked lists.
             FHeapNode tmp = mRight;
@@ -186,9 +239,16 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
 
             mLeft = this;
             mRight = this;
+            if(mParent != null){
+                if(mLeft != this)
+                    mParent.mChild = mLeft;
+                else
+                    mParent.mChild = null;
+
+            }
         }
 
-        public void heapLink(FHeapNode x) {
+        private void heapLink(FHeapNode x) {
             removeFromList();
             if(x.mChild != null) {
                 x.mChild.mergeList(this);
@@ -196,6 +256,7 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
             else{
                 x.mChild = this;
             }
+            mParent = x;
             x.mDegree++;
             mMarked = false;
         }
