@@ -96,15 +96,16 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
     private void consolidate() {
         List<FHeapNode> nodesVisited = new LinkedList<>();
         List<FHeapNode> nodesToCheck = new LinkedList<>();
-        for (int i = 0; i < 400; i++) {
-            nodesVisited.add(null);
-        }
+
         FHeapNode firstVisited = mMin;
         nodesToCheck.add(mMin);
         FHeapNode node = mMin.mRight;
         while(firstVisited != node){
             nodesToCheck.add(node);
             node = node.mRight;
+        }
+        for (int i = 0; i < nodesToCheck.size()+1; i++) {
+            nodesVisited.add(null);
         }
         for (int i = 0; i != nodesToCheck.size(); i++) {
             FHeapNode x = nodesToCheck.get(i);
