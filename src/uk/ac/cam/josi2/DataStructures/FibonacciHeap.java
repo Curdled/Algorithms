@@ -95,15 +95,21 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
 
     private void consolidate() {
         List<FHeapNode> nodesVisited = new LinkedList<>();
+        List<FHeapNode> nodesToCheck = new LinkedList<>();
         for (int i = 0; i < 400; i++) {
             nodesVisited.add(null);
         }
         FHeapNode firstVisited = mMin;
+        nodesToCheck.add(mMin);
         FHeapNode node = mMin.mRight;
-        while(node != firstVisited){
-            FHeapNode x = node;
+        while(firstVisited != node){
+            nodesToCheck.add(node);
+            node = node.mRight;
+        }
+        for (int i = 0; i != nodesToCheck.size(); i++) {
+            FHeapNode x = nodesToCheck.get(i);
             int d = x.mDegree;
-            while(nodesVisited.get(d) != null){
+            while(nodesVisited.get(d) != null && !nodesVisited.get(d).equals(x)){
                 FHeapNode y = nodesVisited.get(d);
                 if(x.mKey.compareTo(y.mKey) > 0){
                     FHeapNode tmp = x;
@@ -115,12 +121,13 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
                 d++;
             }
             nodesVisited.set(d, x);
-            node = node.mRight;
         }
         mMin = null;
         for (int i = 0; i != nodesVisited.size(); i++) {
             FHeapNode currentNode = nodesVisited.get(i);
+
             if (nodesVisited.get(i) != null){
+                currentNode.removeFromList();
                 if(mMin == null){
                     currentNode.mLeft = currentNode;
                     currentNode.mRight = currentNode;
