@@ -204,7 +204,6 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
             removeFromList();
             node.mDegree--;
             mMin.mergeList(this);
-
             mParent = null;
             mMarked = false;
         }
@@ -244,7 +243,6 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
                     mParent.mChild = mLeft;
                 else
                     mParent.mChild = null;
-
             }
         }
 
