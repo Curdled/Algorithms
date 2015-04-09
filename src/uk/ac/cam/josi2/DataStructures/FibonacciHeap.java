@@ -93,6 +93,10 @@ public class FibonacciHeap<T extends Comparable<T>, U> {
         return oldMin.mData;
     }
 
+    public void decreaseKey(FHeapNode x, T k){
+
+    }
+
     private void consolidate() {
         List<FHeapNode> nodesVisited = new LinkedList<>();
         List<FHeapNode> nodesToCheck = new LinkedList<>();
