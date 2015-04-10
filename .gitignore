@@ -1,5 +1,8 @@
 *.class
 
+#main used for testing
+Main.java
+
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 
