@@ -42,23 +42,33 @@ public class BTree<T extends Comparable<T>,U> {
 
 
     public void insert(T key, U value){
-        BTreeNode newRoot = mRoot;
+        BTreeNode node = mRoot;
         KeyDataPair p = new KeyDataPair(key, value);
-        if (newRoot.mKeys.size() == 2*mMinDegree - 1){
+        if (node.mKeys.size() == 2*mMinDegree - 1){
             BTreeNode s = new BTreeNode();
             mRoot = s;
             s.mLeaf = false;
-            s.mPointers.add(0,newRoot);
+            s.mPointers.add(0,node);
             s.split(0);
             insertNotFull(s, p);
         }
         else
-            insertNotFull(newRoot, p);
+            insertNotFull(node, p);
+    }
+
+
+    public void delete2(T key){
+        BTreeNode node = mRoot;
+
     }
 
     public void delete(T key){
-        BTreeNode node = mRoot;
-        BTreeNode parent = null;
+        deleteFromIndex(key, mRoot, null);
+    }
+
+    private void deleteFromIndex(T key, BTreeNode subRoot , BTreeNode subRootParent){
+        BTreeNode node = subRoot;
+        BTreeNode parent = subRootParent;
         int parentIndex = -1;//this will only be -1 if the key to be deleted is in the root.
         while(node != null) {
             int j = 0;
@@ -70,9 +80,12 @@ public class BTree<T extends Comparable<T>,U> {
                     deleteNode(node, parent, i, parentIndex);
                     return;
                 }
-                else if(val > 0){
+                else if(val > 0 && !node.mLeaf){
                     parent = node;
                     node = node.mPointers.get(i);
+                    if(node.mKeys.size() < mMinDegree){
+                        parent.fixChild(node, i);
+                    }
                     parentIndex = i;
                     break;
                     //go down the left side of the node.
@@ -80,18 +93,40 @@ public class BTree<T extends Comparable<T>,U> {
             }
             j++;
             //check all go down the right most side.
-            if(!node.mLeaf && j == node.mKeys.size()) {
+            if(!node.mLeaf && j == node.mKeys.size() && !node.mLeaf) {
                 parent = node;
                 parentIndex = node.mPointers.size() - 1;
                 node = node.mPointers.get(node.mPointers.size() - 1);
+                if(node.mKeys.size() < mMinDegree){
+                    parent.fixChild(node, node.mPointers.size() - 1);
+                }
             }
-
         }
     }
 
     public void deleteNode(BTreeNode node, BTreeNode parent, int index, int parentIndex){
-
-        if(node.equals(mRoot)){//root node.
+        T keyToDelete = node.mKeys.get(index).mKey;
+        if(node.equals(mRoot)){
+            if(node.mLeaf) {
+                node.mKeys.remove(index);
+            }
+            else {//node has children
+                if(node.mKeys.size() == 1){
+                    node.merge(0);
+                    delete(keyToDelete);
+                }
+                else{//internal node.
+                    if(node.mPointers.get(index).mKeys.size() > mMinDegree)
+                        node.mKeys.set(index, node.findPredecessorAndDelete(index));
+                    else if(node.mPointers.get(index+1).mKeys.size() > mMinDegree){
+                        node.mKeys.set(index, node.findSuccessorAndDelete(index));
+                    }
+                    else{
+                        node.merge(index);
+                        deleteFromIndex(keyToDelete, node, parent);
+                    }
+                }
+            }
 
         }
         else if(node.mLeaf){//leaf.
@@ -99,9 +134,6 @@ public class BTree<T extends Comparable<T>,U> {
             if(node.mKeys.size() < mMinDegree){
                 parent.fixChild(node, index);
             }
-        }
-        else{//internal node.
-
         }
     }
 
@@ -170,10 +202,6 @@ public class BTree<T extends Comparable<T>,U> {
             }
             else{//must merge with a sibling.
                 merge(index);
-                if(mKeys.size()+1 <= mMinDegree){
-                    //fixParent();
-                }
-
             }
 
         }
@@ -211,7 +239,7 @@ public class BTree<T extends Comparable<T>,U> {
             BTreeNode leftSide = mPointers.get(index);
             BTreeNode rightSide = mPointers.get(index+1);
 
-            mPointers.remove(index+1);
+            mPointers.remove(index + 1);
             leftSide.mKeys.add(mKeys.get(index));
             for (int i = 0; i != rightSide.mKeys.size(); i++) {
                 leftSide.mKeys.add(rightSide.mKeys.get(i));
@@ -224,9 +252,6 @@ public class BTree<T extends Comparable<T>,U> {
                 if (mKeys.size() == 0) {
                     mRoot = leftSide;
                 }
-            }
-            else if(mKeys.size() < mMinDegree){
-                //
             }
         }
 
@@ -256,10 +281,39 @@ public class BTree<T extends Comparable<T>,U> {
             if(leftSide.mKeys.size() == 0)
                 leftSide.mKeys.add(0, mKeys.get(index));
             else
-                leftSide.mKeys.add(leftSide.mKeys.size()-1, mKeys.get(index));
+                leftSide.mKeys.add(mKeys.get(index));
             mKeys.remove(index);
             mKeys.add(index, rightSide.mKeys.get(0));
             rightSide.mKeys.remove(0);
+        }
+
+        public KeyDataPair findPredecessorAndDelete(int index) {
+            BTreeNode subTree = mPointers.get(index);
+            while(!subTree.mLeaf) {
+                int childIndex = mPointers.size() - 1;
+                BTreeNode child = subTree.mPointers.get(childIndex);
+                if (child.mKeys.size() < mMinDegree) {
+                    subTree.fixChild(child, childIndex);
+                }
+                subTree = child;
+            }
+            KeyDataPair ret = subTree.mKeys.get(subTree.mKeys.size()-1);
+            subTree.mKeys.remove(subTree.mKeys.size()-1);
+            return ret;
+        }
+
+        public KeyDataPair findSuccessorAndDelete(int index) {
+            BTreeNode subTree = mPointers.get(index);
+            while(!subTree.mLeaf) {
+                BTreeNode child = subTree.mPointers.get(0);
+                if (child.mKeys.size() < mMinDegree) {
+                    subTree.fixChild(child, 0);
+                }
+                subTree = child;
+            }
+            KeyDataPair ret = subTree.mKeys.get(subTree.mKeys.size()-1);
+            subTree.mKeys.remove(subTree.mKeys.size()-1);
+            return ret;
         }
     }
 
